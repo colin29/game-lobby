@@ -9,16 +9,25 @@ var io = require('socket.io')(http);
 
 app.use(express.static(__dirname));
 
+var users = [];
+var clients = [];
+
 io.on('connection', function(socket){
-  
   var name = gu(); //generate username for new user
   console.log('user connected and was granted the name: ' + name);
   socket.broadcast.emit('system message', 'User <' + name + '> has connected.');
-  
+  users[name]=socket.id;
+  clients[socket.id] = socket;
+  socket.username = name;
+
   socket.on('disconnect', function(){
     console.log('user <' + name + '> disconnected: freeing username');
     socket.broadcast.emit('system message', 'User <' + name + '> has disconnected.');
     free_username(name);
+    delete clients[socket.id];
+    delete users[socket.username];
+    // console.log(clients);
+    // console.log(users);
   });
   socket.on('chat message', function(msg){
     //console.log('message: ' + msg);
@@ -26,6 +35,10 @@ io.on('connection', function(socket){
     //socket.broadcast.emit('hi');
     io.emit('chat message', msg);
 	});
+  socket.on('pm', function(msg, target){
+  	console.log("Recieved pm: " + "Target: " + target + " Message: " + msg);
+
+  });	
 
 
 });

@@ -14,12 +14,29 @@
 <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
   var socket = io();
+
+  console.log("hi");  
   $('form').submit(function(){
+    var message = $('#m').val();
+  if(message.length >= 3 && message.slice(0, 3) == "/m "){ //see if message is a private message
+     message = message.slice(3, message.length).trim();
+    console.log(message);
+    if(message.indexOf(' ')==-1){
+      console.log("error, pm format is /m '<user> <message>'");
+    }else{
+    var target = message.slice(0, message.indexOf(' '));
+    message = message.slice(target.length).trim();
+    console.log("about to emit a message");  
+    socket.emit('pm', message, target);
+    $('#m').val('');
+    }
+    return false;
+  }else{
     socket.emit('chat message', $('#m').val()); //1 extra argument here, means that function(msg) has 1 parameter, namely msg.
     $('#m').val('');
     return false;
-  });
-
+  }});
+  
   socket.on('chat message', function(msg){
     $('#messages').append($('<li>').text(msg));
   });
