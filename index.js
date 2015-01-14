@@ -24,6 +24,7 @@ io.on('connection', function(socket){
     console.log('user <' + name + '> disconnected: freeing username');
     socket.broadcast.emit('system message', 'User <' + name + '> has disconnected.');
     free_username(name);
+
     delete clients[socket.id];
     delete users[socket.username];
     // console.log(clients);
@@ -33,10 +34,18 @@ io.on('connection', function(socket){
     //console.log('message: ' + msg);
     //could use io.emit(someevent, {for: 'everyone'});
     //socket.broadcast.emit('hi');
-    io.emit('chat message', msg);
+    io.emit('chat message', socket.username, msg);
 	});
   socket.on('pm', function(msg, target){
   	console.log("Recieved pm: " + "Target: " + target + " Message: " + msg);
+  	if(users[target]){
+  		socket.emit("pm", "to ->" + target, msg);
+  		io.to(users[target]).emit("pm", "from ->" + socket.username, msg);
+  	}else{
+  		console.log(users);
+  		socket.emit("system message", "Error: User specified does not exist." )
+  		console.log("Error: Target of PM does not exist.");	
+  	}
 
   });	
 

@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Socket.IO chat</title>
-    <link rel="stylesheet" type="text/css" href="index.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="index2.css" media="screen" />
   </head>
   <body>
     <ul id="messages"></ul>
@@ -18,30 +18,35 @@
   console.log("hi");  
   $('form').submit(function(){
     var message = $('#m').val();
-  if(message.length >= 3 && message.slice(0, 3) == "/m "){ //see if message is a private message
+  if(message.length >= 3 && message.slice(0, 3) == "/m "){ // detect and handle private messages in the form of "/m <target> <message>
      message = message.slice(3, message.length).trim();
-    console.log(message);
+
     if(message.indexOf(' ')==-1){
       console.log("error, pm format is /m '<user> <message>'");
     }else{
     var target = message.slice(0, message.indexOf(' '));
     message = message.slice(target.length).trim();
+
     console.log("about to emit a message");  
     socket.emit('pm', message, target);
-    $('#m').val('');
+    $('#m').val('/m ' + target + ' ');
     }
-    return false;
-  }else{
-    socket.emit('chat message', $('#m').val()); //1 extra argument here, means that function(msg) has 1 parameter, namely msg.
+  }else{  //otherwise treat as normal message.
+    socket.emit('chat message', $('#m').val()); 
     $('#m').val('');
-    return false;
-  }});
+
+  }
+  return false;
+  });
   
-  socket.on('chat message', function(msg){
-    $('#messages').append($('<li>').text(msg));
+  socket.on('chat message', function(username, msg){
+    $('#messages').append($('<li>').text(username + ": " + msg));
   });
   socket.on('system message', function(msg){
     $('#messages').append($('<li>').text(msg).addClass('sysmsg'));
+  });
+  socket.on('pm', function(username, msg){
+    $('#messages').append($('<li>').text(username + ": " + msg).addClass('pm'));
   });
 
   //socket.on and socket.emit on client side.
